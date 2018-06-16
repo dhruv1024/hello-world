@@ -1,5 +1,8 @@
 #!/bin/bash
 
+#An original command made mostly using awk to add color to the different lines and points the extra lines.
+#An alternative to the diff command.
+
 #echo $0
 echo $1
 echo $2
