@@ -1,3 +1,5 @@
+# To calculate rank of the word in a dictionary created by the letters of the word itself.
+
 def main():
     n=str(input())
     order=sorted(n)
