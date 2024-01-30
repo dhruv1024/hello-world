@@ -1,0 +1,63 @@
+#!/bin/bash
+
+NC=\033[0m
+
+# Function to print colored text
+print_colored() {
+  echo -e "$1$2${NC}"
+}
+
+# Check if two files are provided
+if [ $# -ne 2 ]; then
+  echo "Usage: $0 <file1> <file2>"
+  exit 1
+fi
+
+# Get line counts of both files
+lines_file1=$(awk 'END{print NR}' "$1")
+lines_file2=$(awk 'END{print NR}' "$2")
+
+# Determine the larger and smaller files
+if ((lines_file1 > lines_file2)); then
+  larger_file="$1"
+  smaller_file="$2"
+else
+  larger_file="$2"
+  smaller_file="$1"
+fi
+
+# Find the first differing line
+for ((i = 1; i <= lines_file1; i++)); do
+  line_file1=$(awk -v f="$i" 'NR==f {print $0}' "$1")
+  line_file2=$(awk -v f="$i" 'NR==f {print $0}' "$2")
+
+  if [ "$line_file1" != "$line_file2" ]; then
+    echo -e "\nFirst difference found at line number $i\n"
+    break
+  fi
+done
+
+# Print the differing lines in both files with color highlighting
+print_colored '\033[0;31m' "$(awk -v n="$i" 'NR==0,NR==n {print NR,$0}' "$1")"
+echo -e "\nIn $1 and\n"
+
+print_colored '\033[0;31m' "$(awk -v n="$i" -v m="$lines_file1" 'NR==n,NR==m {print NR,$0}' "$1")"
+echo -e "\n\n"
+
+print_colored '\033[0;31m' "$(awk -v n="$i" 'NR==n {print NR,$0}' "$2")"
+echo -e "\nIn $2\n"
+
+print_colored '\033[0;31m' "$(awk -v n="$i" 'NR==0,NR==n {print NR,$0}' "$2")"
+print_colored '\033[0;31m' "$(awk -v n="$i" -v m="$lines_file2" 'NR==n,NR==m {print NR,$0}' "$2")"
+
+# Determine the range of extra lines in the larger file
+if ((lines_file1 > lines_file2)); then
+  start=$((lines_file2 + 1))
+else
+  start=$((lines_file1 + 1))
+fi
+
+# Print extra lines in the larger file with color highlighting
+echo -e "\nExtra lines in $larger_file : \033[0;32m"
+awk -v start="$start" -v end="$lines_file1" 'NR==start,NR==end {print NR,$0}' "$larger_file"
+echo -e '\033[0m'
